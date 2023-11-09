@@ -43,22 +43,29 @@ func main() {
 		fmt.Println("Error writing the response into the connection: ", err.Error())
 	}
 
-	httpData := strings.Split(string(data), CLFR)
+	req := strings.Split(string(data), CLFR)
 
-	firstLine := strings.Split(httpData[0], " ")
+	startLine := strings.Split(req[0], " ")
+	userAgent := req[2]
 
-	_, path, _ := firstLine[0], firstLine[1], firstLine[2]
+	_, path, _ := startLine[0], startLine[1], startLine[2]
 
 	if path == "/" {
 		conn.Write([]byte(HTTP_VERSION + " " + OK + DOUBLE_CLFR))
 	} else if strings.Contains(path, "/echo/") {
 		pathRandomString := strings.Split(path, "/echo/")[1]
-		pathRandomStringLen := len(pathRandomString)
 
 		conn.Write([]byte(HTTP_VERSION + " " + OK + CLFR))
 		conn.Write([]byte("Content-Type: text/plain" + CLFR))
-		conn.Write([]byte("Content-Length: " + strconv.Itoa(pathRandomStringLen) + DOUBLE_CLFR))
+		conn.Write([]byte("Content-Length: " + strconv.Itoa(len(pathRandomString)) + DOUBLE_CLFR))
 		conn.Write([]byte(pathRandomString + DOUBLE_CLFR))
+	} else if path == "/user-agent" {
+		userAgentValue := strings.Split(userAgent, ": ")[1]
+
+		conn.Write([]byte(HTTP_VERSION + " " + OK + CLFR))
+		conn.Write([]byte("Content-Type: text/plain" + CLFR))
+		conn.Write([]byte("Content-Length: " + strconv.Itoa(len(userAgentValue)) + DOUBLE_CLFR))
+		conn.Write([]byte(userAgentValue + DOUBLE_CLFR))
 	} else {
 		conn.Write([]byte(HTTP_VERSION + " " + NOT_FOUND + DOUBLE_CLFR))
 	}
