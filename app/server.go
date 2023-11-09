@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -50,6 +51,14 @@ func main() {
 
 	if path == "/" {
 		conn.Write([]byte(HTTP_VERSION + " " + OK + DOUBLE_CLFR))
+	} else if strings.Contains(path, "/echo/") {
+		pathRandomString := strings.Split(path, "/echo/")[1]
+		pathRandomStringLen := len(pathRandomString)
+
+		conn.Write([]byte(HTTP_VERSION + " " + OK + CLFR))
+		conn.Write([]byte("Content-Type: text/plain" + CLFR))
+		conn.Write([]byte("Content-Length: " + strconv.Itoa(pathRandomStringLen) + DOUBLE_CLFR))
+		conn.Write([]byte(pathRandomString + DOUBLE_CLFR))
 	} else {
 		conn.Write([]byte(HTTP_VERSION + " " + NOT_FOUND + DOUBLE_CLFR))
 	}
