@@ -4,6 +4,15 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
+)
+
+const (
+	HTTP_VERSION = "HTTP/1.1"
+	OK           = "200 OK"
+	NOT_FOUND    = "404 NOT FOUND"
+	CLFR         = "\r\n"
+	DOUBLE_CLFR  = CLFR + CLFR
 )
 
 func main() {
@@ -21,17 +30,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	_, err = conn.Read(make([]byte, 1024))
+	data := make([]byte, 1024)
+	_, err = conn.Read(data)
 
 	if err != nil {
 		fmt.Println("Error reading data from connection: ", err.Error())
 		os.Exit(1)
 	}
 
-	_, err = conn.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
-
 	if err != nil {
 		fmt.Println("Error writing the response into the connection: ", err.Error())
+	}
+
+	httpData := strings.Split(string(data), CLFR)
+
+	firstLine := strings.Split(httpData[0], " ")
+
+	_, path, _ := firstLine[0], firstLine[1], firstLine[2]
+
+	if path == "/" {
+		conn.Write([]byte(HTTP_VERSION + " " + OK + DOUBLE_CLFR))
+	} else {
+		conn.Write([]byte(HTTP_VERSION + " " + NOT_FOUND + DOUBLE_CLFR))
 	}
 
 }
